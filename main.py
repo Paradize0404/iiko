@@ -29,18 +29,21 @@ async def receive_stoplist(request: Request):
 
     try:
         json_data = await request.json()
-        log.info("📦 FULL JSON RECEIVED: %s", json_data)
+        log.info("📦 JSON RECEIVED: %s", json_data)
 
-        # Достаём список блюд из объекта iiko
-        items_raw = json_data.get("stopListItems", [])
-        if not isinstance(items_raw, list):
-            raise ValueError("stopListItems must be a list")
+        # 🧠 Поддержка как списка, так и словаря с ключом stopListItems
+        if isinstance(json_data, list):
+            items_raw = json_data
+        elif isinstance(json_data, dict) and "stopListItems" in json_data:
+            items_raw = json_data["stopListItems"]
+        else:
+            raise ValueError("Неподдерживаемая структура JSON: нужен список или объект со stopListItems")
 
-        # Валидация каждого элемента
         items = [StopItem(**item) for item in items_raw]
 
         for item in items:
-            log.info("✅ STOP ITEM: %s — %s (%s)", item.productName, "❌ НЕТ" if not item.available else "✅ ЕСТЬ", item.timestamp)
+            status = "removed_from_stoplist" if item.available else "added_to_stoplist"
+            log.info("✅ STOP ITEM: %s → %s", item.productName, status)
 
         return {"status": "ok", "received": len(items)}
     except Exception as e:
