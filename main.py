@@ -14,6 +14,15 @@ def root():
     return {"status": "alive"}
 
 @app.post("/stoplist")
-async def receive_stoplist(item: StopItem):
-    log.info("🚦 STOPLIST %s", item.json())
-    return {"status": "ok"}
+async def receive_stoplist(request: Request):
+    raw_body = await request.body()
+    log.info("📩 RAW BODY: %s", raw_body.decode("utf-8"))
+
+    try:
+        item = await request.json()
+        validated = StopItem(**item)
+        log.info("✅ VALIDATED ITEM: %s", validated.json())
+        return {"status": "ok"}
+    except Exception as e:
+        log.error("❌ ERROR: %s", str(e))
+        return {"status": "error", "message": str(e)}
