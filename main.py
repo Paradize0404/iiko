@@ -60,6 +60,8 @@ async def fetch_stoplist_from_iiko(organization_id: str):
     if not api_key:
         raise RuntimeError("IIKO_API_KEY не задан в переменных окружения")
 
+    log.info("🔐 Текущий IIKO_API_KEY (обрезан): %s...", api_key[:6])
+
     url = "https://api-ru.iiko.services/api/1/stopLists"
     headers = {
         "Content-Type": "application/json",
