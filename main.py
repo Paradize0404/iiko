@@ -31,21 +31,18 @@ async def receive_stoplist(request: Request):
         json_data = await request.json()
         log.info("📦 JSON RECEIVED: %s", json_data)
 
-        # 🧠 Поддержка как списка, так и словаря с ключом stopListItems
         if isinstance(json_data, list):
             items_raw = json_data
         elif isinstance(json_data, dict) and "stopListItems" in json_data:
             items_raw = json_data["stopListItems"]
         else:
-            raise ValueError("Неподдерживаемая структура JSON: нужен список или объект со stopListItems")
+            raise ValueError("Неподдерживаемая структура JSON")
 
-        items = [StopItem(**item) for item in items_raw]
+        # 🔍 Выводим объекты из stopListItems как есть — без валидации
+        for item in items_raw:
+            log.info("🔍 ОБЪЕКТ ВНУТРИ: %s", item)
 
-        for item in items:
-            status = "removed_from_stoplist" if item.available else "added_to_stoplist"
-            log.info("✅ STOP ITEM: %s → %s", item.productName, status)
-
-        return {"status": "ok", "received": len(items)}
+        return {"status": "ok", "received": len(items_raw)}
     except Exception as e:
-        log.error("❌ ERROR while parsing or validating: %s", str(e))
+        log.error("❌ ERROR while parsing or inspecting: %s", str(e))
         return {"status": "error", "message": str(e)}
