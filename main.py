@@ -3,6 +3,8 @@ from pydantic import BaseModel
 import logging
 from typing import List
 
+logging.basicConfig(level=logging.INFO)
+
 log = logging.getLogger(__name__)
 app = FastAPI()
 
