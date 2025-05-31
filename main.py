@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 import logging
+from typing import List
 
 log = logging.getLogger(__name__)
 app = FastAPI()
