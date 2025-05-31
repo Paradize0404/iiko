@@ -4,6 +4,9 @@ from typing import List
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 import httpx
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
