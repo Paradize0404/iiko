@@ -7,8 +7,10 @@ log = logging.getLogger(__name__)
 app = FastAPI()
 
 class StopItem(BaseModel):
-    name: str
-    status: str
+    productId: str
+    productName: str
+    available: bool
+    timestamp: str
 
 @app.get("/")
 def root():
@@ -19,28 +21,28 @@ async def receive_stoplist(request: Request):
     raw_body = await request.body()
 
     try:
-        decoded_body = raw_body.decode("utf-8")
-        log.info("📩 RAW BODY (decoded): %s", decoded_body)
-    except UnicodeDecodeError:
-        log.warning("⚠️ Failed to decode raw body as UTF-8.")
+        decoded = raw_body.decode("utf-8")
+        log.info("📩 RAW BODY (decoded): %s", decoded)
+    except Exception as e:
+        log.warning("⚠️ Cannot decode body as UTF-8: %s", str(e))
         log.info("📩 RAW BODY (bytes): %s", raw_body)
 
     try:
         json_data = await request.json()
-        log.info("📦 JSON RECEIVED: %s", json_data)
+        log.info("📦 FULL JSON RECEIVED: %s", json_data)
 
-        # Поддержка как одного объекта, так и массива
-        if isinstance(json_data, list):
-            validated_items = [StopItem(**item) for item in json_data]
-        elif isinstance(json_data, dict):
-            validated_items = [StopItem(**json_data)]
-        else:
-            raise ValueError("Unsupported JSON structure")
+        # Достаём список блюд из объекта iiko
+        items_raw = json_data.get("stopListItems", [])
+        if not isinstance(items_raw, list):
+            raise ValueError("stopListItems must be a list")
 
-        for item in validated_items:
-            log.info("✅ STOP ITEM: %s", item.json())
+        # Валидация каждого элемента
+        items = [StopItem(**item) for item in items_raw]
 
-        return {"status": "ok", "received": len(validated_items)}
+        for item in items:
+            log.info("✅ STOP ITEM: %s — %s (%s)", item.productName, "❌ НЕТ" if not item.available else "✅ ЕСТЬ", item.timestamp)
+
+        return {"status": "ok", "received": len(items)}
     except Exception as e:
-        log.error("❌ ERROR: %s", str(e))
+        log.error("❌ ERROR while parsing or validating: %s", str(e))
         return {"status": "error", "message": str(e)}
