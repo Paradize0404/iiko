@@ -19,6 +19,27 @@ class StopItem(BaseModel):
     available: bool
     timestamp: str
 
+@app.on_event("startup")
+async def on_startup():
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    api_key = os.getenv("IIKO_API_KEY")
+    url = "https://api-ru.iiko.services/api/1/organizations"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}"
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers)
+            response.raise_for_status()
+            orgs = response.json()
+            log.info("📊 ДОСТУПНЫЕ ОРГАНИЗАЦИИ: %s", orgs)
+    except Exception as e:
+        log.error("❌ Ошибка при получении организаций: %s", str(e))
+
 # 🚀 Запрос в iiko при старте приложения
 @app.on_event("startup")
 async def on_startup():
