@@ -9,4 +9,6 @@ def update_nomenclature():
     print(f"🔄 Запуск обновления номенклатуры: {datetime.now()}")
     subprocess.run(["python", "main.py"])
 
+update_nomenclature()
+
 scheduler.start()
